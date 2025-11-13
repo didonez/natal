@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 Confraternização do Wanda 2025</title>
+    <!-- Carrega Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carrega a fonte Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+        }
+        .container-card {
+            max-width: 640px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .header-bg {
+            background-image: linear-gradient(135deg, #FF6F61 0%, #FFD166 100%);
+        }
+        .list-item {
+            transition: all 0.3s ease;
+        }
+        .loading-overlay {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(2px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="container-card bg-white rounded-xl overflow-hidden w-full">
+
+            <!-- CABEÇALHO DO EVENTO -->
+            <div class="header-bg p-8 text-white text-center">
+                <h1 class="text-4xl font-extrabold mb-2 tracking-tight">
+                    🎉 CONFRATERNIZAÇÃO DO WANDA 2025 🎁
+                </h1>
+                <p class="text-lg font-medium">Você é nosso convidado especial!</p>
+            </div>
+
+            <!-- DETALHES E DESCRIÇÃO -->
+            <div class="p-6 md:p-8">
+                <div class="space-y-4 mb-8 text-gray-700 text-sm md:text-base">
+                    <p class="flex items-center">
+                        <span class="font-bold w-32 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1 text-red-500" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-3V2h-2v2h-4V2H8v2H5c-1.11 0-1.99.89-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.11-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg> Data:</span>
+                        <span class="font-semibold text-gray-800">14 de dezembro (sábado)</span>
+                    </p>
+                    <p class="flex items-center">
+                        <span class="font-bold w-32 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1 text-blue-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m0-18C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m.5 5H11v6l5.25 3.15.75-1.23-4.5-2.7V7z"/></svg> Horário:</span>
+                        <span class="font-semibold text-gray-800">das 09h às 22h</span>
+                    </p>
+                    <p class="flex items-center">
+                        <span class="font-bold w-32 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1 text-yellow-600" viewBox="0 0 24 24" fill="currentColor"><path d="M19 14.998c-1.25 0-2.5-1.5-2.5-1.5V6.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v7.498zM21 16H3V4h18v12zm-8-7h-2V7h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2zm4 0h-2v-2h2v2zm0-4h-2v-2h2v2zm-4-4h-2V7h2v2z"/></svg> Evento:</span>
+                        <span class="font-semibold text-gray-800">Churrasco com "Amigo Chocolate" 🍫</span>
+                    </p>
+                </div>
+
+                <p class="text-sm italic mb-6 p-3 bg-indigo-50 text-indigo-800 rounded-lg">
+                    📦 O sorteio do Amigo Chocolate será feito após a confirmação de todos os participantes.
+                    Não esqueçam de confirmar presença!
+                </p>
+
+                <!-- FORMULÁRIO DE CONFIRMAÇÃO -->
+                <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Confirme Sua Presença</h3>
+                <div id="form-message" class="p-3 mb-4 text-center rounded-lg hidden"></div>
+
+                <form id="presence-form" class="space-y-4">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700">Seu Nome Completo:</label>
+                        <input type="text" id="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm" placeholder="Ex: Rogério Silva">
+                    </div>
+                    
+                    <button type="submit" id="confirm-button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                        ✅ Confirmar Presença
+                    </button>
+                </form>
+
+                <!-- LISTA DE PRESENÇA -->
+                <h3 class="text-xl font-bold text-gray-800 mb-4 mt-8 border-b pb-2">
+                    Lista de Convidados (<span id="count-confirmed">0</span> Confirmados)
+                </h3>
+
+                <div class="relative min-h-[100px]">
+                    <!-- Overlay de Carregamento -->
+                    <div id="loading-overlay" class="loading-overlay absolute inset-0 flex items-center justify-center rounded-lg z-10">
+                        <svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </div>
+
+                    <ul id="confirmed-list" class="space-y-2">
+                        <!-- Itens da lista serão injetados aqui -->
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-gray-100 text-center text-xs text-gray-500">
+                Confirmações até 30 de novembro.
+            </div>
+
+        </div>
+    </div>
+
+    <!-- FIREBASE AND APP SCRIPTS -->
+    <script type="module">
+        // Variáveis globais (fornecidas pelo ambiente Canvas)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, collection, setDoc, query, orderBy, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Adiciona logging do Firestore para debug
+        setLogLevel('Debug');
+
+        let app;
+        let db;
+        let auth;
+        let userId = null;
+        let isAuthReady = false;
+        
+        const DB_COLLECTION = `artifacts/${appId}/public/data/wanda_confraternizacao_2025`;
+
+        const confirmedListElement = document.getElementById('confirmed-list');
+        const countConfirmedElement = document.getElementById('count-confirmed');
+        const formElement = document.getElementById('presence-form');
+        const nameInputElement = document.getElementById('name');
+        const formMessageElement = document.getElementById('form-message');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const confirmButton = document.getElementById('confirm-button');
+
+        // Função para mostrar mensagens de alerta (substitui alert())
+        function showFormMessage(message, type = 'info') {
+            formMessageElement.textContent = message;
+            formMessageElement.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
+            
+            if (type === 'error') {
+                formMessageElement.classList.add('bg-red-100', 'text-red-800');
+            } else if (type === 'success') {
+                formMessageElement.classList.add('bg-green-100', 'text-green-800');
+            } else {
+                formMessageElement.classList.add('bg-blue-100', 'text-blue-800');
+            }
+        }
+
+        // 1. Inicializa o Firebase
+        function initializeFirebase() {
+            try {
+                if (firebaseConfig) {
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                } else {
+                    showFormMessage("Erro: Configuração do Firebase não encontrada.", 'error');
+                    return;
+                }
+
+                // 2. Autenticação
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                    } else {
+                        // Se não estiver logado, faz login anônimo ou com o token
+                        try {
+                            if (initialAuthToken) {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        } catch (error) {
+                            console.error("Erro na autenticação:", error);
+                            showFormMessage("Erro ao autenticar. Tente novamente mais tarde.", 'error');
+                        }
+                    }
+                    isAuthReady = true;
+                    console.log("Autenticação pronta. User ID:", userId);
+                    startPresenceListener();
+                });
+            } catch (error) {
+                console.error("Erro ao inicializar o Firebase:", error);
+                showFormMessage("Falha ao carregar o sistema de presença.", 'error');
+            }
+        }
+
+        // 3. Listener em Tempo Real (onSnapshot)
+        function startPresenceListener() {
+            if (!db || !isAuthReady) return;
+
+            const q = query(
+                collection(db, DB_COLLECTION),
+                orderBy('timestamp', 'asc') // Ordena por data/hora de confirmação
+            );
+
+            // Inicia o listener em tempo real
+            onSnapshot(q, (snapshot) => {
+                loadingOverlay.classList.add('hidden');
+                
+                const confirmedGuests = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    confirmedGuests.push({
+                        id: doc.id,
+                        name: data.name,
+                        timestamp: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : 'N/A'
+                    });
+                });
+
+                renderConfirmedList(confirmedGuests);
+
+            }, (error) => {
+                console.error("Erro ao receber dados em tempo real:", error);
+                loadingOverlay.classList.add('hidden');
+                showFormMessage("Falha ao carregar a lista de presença.", 'error');
+            });
+        }
+
+        // Função para Renderizar a Lista na UI
+        function renderConfirmedList(guests) {
+            confirmedListElement.innerHTML = ''; // Limpa a lista atual
+            countConfirmedElement.textContent = guests.length; // Atualiza a contagem
+
+            if (guests.length === 0) {
+                confirmedListElement.innerHTML = '<li class="text-gray-500 p-4 text-center">Ninguém confirmou presença ainda. Seja o primeiro!</li>';
+                return;
+            }
+
+            guests.forEach(guest => {
+                const li = document.createElement('li');
+                li.className = 'list-item flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md hover:bg-red-50 transition duration-200';
+                
+                // Nome do convidado
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'font-medium text-gray-800';
+                nameSpan.textContent = guest.name;
+
+                // Data de confirmação
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'text-xs text-gray-500 ml-4';
+                timeSpan.textContent = guest.timestamp;
+                
+                li.appendChild(nameSpan);
+                li.appendChild(timeSpan);
+                confirmedListElement.appendChild(li);
+            });
+        }
+
+
+        // 4. Lógica de Confirmação (Submissão do Formulário)
+        formElement.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!userId) {
+                showFormMessage("Aguarde a inicialização do sistema...", 'info');
+                return;
+            }
+
+            const name = nameInputElement.value.trim();
+            if (!name) {
+                showFormMessage("Por favor, preencha seu nome.", 'error');
+                return;
+            }
+
+            confirmButton.disabled = true;
+            confirmButton.textContent = 'Aguarde...';
+
+            // O ID do documento será o ID do usuário (userId)
+            // Isso garante que cada usuário só possa confirmar uma vez ou atualizar sua confirmação.
+            const docRef = doc(db, DB_COLLECTION, userId);
+
+            try {
+                await setDoc(docRef, {
+                    name: name,
+                    timestamp: serverTimestamp(), // Data/hora do servidor para evitar fraudes
+                    userId: userId,
+                });
+
+                showFormMessage(`Obrigado, ${name}! Sua presença foi confirmada.`, 'success');
+                // Mantém o nome preenchido, mas desabilita o botão para evitar spam
+                confirmButton.textContent = '✅ Presença Confirmada!';
+                confirmButton.classList.remove('bg-green-600', 'hover:bg-green-700');
+                confirmButton.classList.add('bg-gray-400');
+                nameInputElement.disabled = true;
+
+            } catch (error) {
+                console.error("Erro ao salvar a confirmação:", error);
+                showFormMessage("Falha ao confirmar presença. Tente novamente.", 'error');
+                confirmButton.disabled = false;
+                confirmButton.textContent = '✅ Confirmar Presença';
+            }
+        });
+
+        // Inicia a aplicação
+        window.onload = initializeFirebase;
+    </script>
+
+</body>
+</html>
