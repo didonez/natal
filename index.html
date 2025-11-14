@@ -78,13 +78,12 @@
         let firebaseConfig = {};
         let isConfigValid = false;
         
-        // --- CONFIGURAÇÃO DE FALLBACK HARDCODED (INJETADO COM SEUS DADOS) ---
-        // ESTA CONFIGURAÇÃO GARANTE A PERSISTÊNCIA.
+        // --- CONFIGURAÇÃO DE FALLBACK HARDCODED (ATUALIZADO COM OS DADOS DO SEU PRINT) ---
         const HARDCODED_FALLBACK_CONFIG = {
              apiKey: "AIzaSyDrml6PR8c2BABa8X5HbYBmAUsTua_hPbk", 
              authDomain: "formularios-7a70f.firebaseapp.com",
              projectId: "formularios-7a70f",
-             storageBucket: "formularios-7a70f.firebasestorage.app",
+             storageBucket: "formularios-7a70f.appspot.com", // Ajustado para a propriedade correta
              messagingSenderId: "174368064194",
              appId: "1:174368064194:web:32f0f10502c9f3039cb15b",
              measurementId: "G-FK5FCZ2HJ2"
@@ -104,11 +103,11 @@
             console.error("Erro ao processar __firebase_config:", e);
         }
 
-        // Se a configuração do ambiente falhou, use o fallback hardcoded.
+        // Se a configuração do ambiente falhou, usa o fallback hardcoded ATUALIZADO
         if (!isConfigValid && HARDCODED_FALLBACK_CONFIG.apiKey) {
              firebaseConfig = HARDCODED_FALLBACK_CONFIG;
              isConfigValid = true;
-             console.warn("Usando Configuração de Fallback Hardcoded do Firebase.");
+             console.warn("Usando Configuração de Fallback Hardcoded do Firebase. Conexão deve funcionar.");
         }
 
 
@@ -125,7 +124,7 @@
             pix: "123.456.789-00 (CPF da Organização)",
             valorAmigoSecreto: 30.00,
             contribuiçaoIndividual: "Cada um deve levar o que irá consumir: bebidas (cerveja, refri, água) e comida para churrasco (carne, linguiça, frango, pão de alho, arroz, sobremesa, etc.).",
-            // ID DO ORGANIZADOR: MUDE ESTE ID para o seu próprio ID (exibido no topo da tela)
+            // ID DO ORGANIZADOR: Usando o ID do usuário que enviou o último print.
             ORGANIZER_ID: "uUrSomDeD5RF1Q1DyIPSES6pt0c2", 
         };
 
@@ -431,7 +430,8 @@
             confirmButton.disabled = true;
             confirmButton.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'bg-red-600', 'hover:bg-red-700', 'bg-green-600', 'hover:bg-green-700');
             confirmButton.classList.add('bg-indigo-600');
-            confirmButton.innerHTML = `<div class="loader mx-auto"></div>`; // Bota o loader
+            // Usando a classe loader para o spinner
+            confirmButton.innerHTML = `<div class="loader mx-auto"></div>`; 
             
             try {
                 const docRef = getMyRsvpDocRef();
@@ -447,10 +447,8 @@
                     userId: userId,
                 });
 
-                // Sucesso: Botão verde
+                // CORREÇÃO: Muda o botão para o estado de sucesso imediatamente após salvar
                 resetConfirmButton(true);
-                // Atualiza o formulário com dados salvos
-                // Não precisa chamar checkMyRsvp aqui, onSnapshot fará isso
                 
             } catch (e) {
                 console.error("Erro ao confirmar presença:", e);
