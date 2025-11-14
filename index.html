@@ -60,10 +60,21 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, collection, query, setDoc, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Variáveis globais (fornecidas pelo ambiente)
+        // --- Leitura Segura das Variáveis Globais (AJUSTADO AQUI) ---
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let firebaseConfig = {};
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            try {
+                // Tenta fazer o parse apenas se a variável existir e não for nula/vazia
+                firebaseConfig = JSON.parse(__firebase_config);
+            } catch (e) {
+                console.error("Erro ao fazer parse da configuração do Firebase: A string JSON é inválida.", e);
+                // firebaseConfig permanece como {} se o parse falhar
+            }
+        }
+        // -----------------------------------------------------------
 
         // --- Variáveis de Configuração da Festa (EDITÁVEIS) ---
         // ATENÇÃO: Edite apenas os valores destas constantes para mudar os detalhes da festa.
@@ -124,7 +135,7 @@
         async function initializeFirebase() {
             try {
                 if (Object.keys(firebaseConfig).length === 0) {
-                    showError(authErrorBox, "Erro: Configuração do Firebase não encontrada.");
+                    showError(authErrorBox, "Erro: Configuração do Firebase não encontrada. Verifique se o __firebase_config está definido corretamente.");
                     connectingDiv.textContent = "Erro de Configuração";
                     return;
                 }
@@ -165,6 +176,7 @@
         }
 
         function getRsvpsCollectionRef() {
+            // Coleção pública para todos os usuários verem as confirmações
             return collection(db, `artifacts/${appId}/public/data/rsvps`);
         }
 
@@ -186,6 +198,7 @@
                     }
                 });
                 
+                // Ordena por timestamp para mostrar os mais recentes primeiro
                 guests.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
                 renderGuests(guests, totalConfirmed);
@@ -245,6 +258,7 @@
             confirmButton.innerHTML = `<div class="loader mx-auto"></div>`;
             
             try {
+                // O doc ID é o userId, garantindo que cada usuário só tenha uma confirmação
                 const docRef = doc(getRsvpsCollectionRef(), userId);
                 
                 await setDoc(docRef, {
