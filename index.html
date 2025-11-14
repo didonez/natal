@@ -74,19 +74,43 @@
         // 1. As variáveis globais são fornecidas pelo ambiente Canvas e são obrigatórias.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'amigo-secreto-festa-2025'; 
         
+        // 2. Tente carregar a configuração do ambiente, se falhar, use a configuração de fallback.
         let firebaseConfig = {};
         let isConfigValid = false;
+        
+        // --- CONFIGURAÇÃO DE FALLBACK HARDCODED (INJETADO COM SEUS DADOS) ---
+        // ESTA CONFIGURAÇÃO GARANTE A PERSISTÊNCIA.
+        const HARDCODED_FALLBACK_CONFIG = {
+             apiKey: "AIzaSyDrml6PR8c2BABa8X5HbYBmAUsTua_hPbk", 
+             authDomain: "formularios-7a70f.firebaseapp.com",
+             projectId: "formularios-7a70f",
+             storageBucket: "formularios-7a70f.firebasestorage.app",
+             messagingSenderId: "174368064194",
+             appId: "1:174368064194:web:32f0f10502c9f3039cb15b",
+             measurementId: "G-FK5FCZ2HJ2"
+        };
+        // ------------------------------------------------------------------------
+
         try {
             // Tenta obter a configuração do ambiente
             if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                firebaseConfig = JSON.parse(__firebase_config);
-                if (firebaseConfig.apiKey) {
+                const configFromEnv = JSON.parse(__firebase_config);
+                if (configFromEnv.apiKey) {
+                    firebaseConfig = configFromEnv;
                     isConfigValid = true;
                 }
             }
         } catch (e) {
             console.error("Erro ao processar __firebase_config:", e);
         }
+
+        // Se a configuração do ambiente falhou, use o fallback hardcoded.
+        if (!isConfigValid && HARDCODED_FALLBACK_CONFIG.apiKey) {
+             firebaseConfig = HARDCODED_FALLBACK_CONFIG;
+             isConfigValid = true;
+             console.warn("Usando Configuração de Fallback Hardcoded do Firebase.");
+        }
+
 
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; 
         
@@ -101,7 +125,7 @@
             pix: "123.456.789-00 (CPF da Organização)",
             valorAmigoSecreto: 30.00,
             contribuiçaoIndividual: "Cada um deve levar o que irá consumir: bebidas (cerveja, refri, água) e comida para churrasco (carne, linguiça, frango, pão de alho, arroz, sobremesa, etc.).",
-            // ID DO ORGANIZADOR FORNECIDO PELO USUÁRIO (Mude este ID para o seu próprio ID de usuário)
+            // ID DO ORGANIZADOR: MUDE ESTE ID para o seu próprio ID (exibido no topo da tela)
             ORGANIZER_ID: "uUrSomDeD5RF1Q1DyIPSES6pt0c2", 
         };
 
@@ -740,7 +764,7 @@
             </div>
             <p class="text-base font-light" id="eventSubtitle">
                 <!-- Preenchido pelo JS -->
-            </p>
+            </div>
             <p id="userIdDisplay" class="text-xs mt-2 opacity-70">ID: Carregando...</p>
         </div>
 
