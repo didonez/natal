@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RSVP Festa com Cálculo de Custo</title>
+    <!-- Carrega Tailwind CSS para estilização -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Define a fonte Inter e estilos customizados -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
@@ -59,26 +61,26 @@
             font-weight: 500;
         }
     </style>
+    <!-- Módulos do Firebase (v11.6.1) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, collection, query, setDoc, serverTimestamp, setLogLevel, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ------------------------------------------------------------------------------------
-        // --- CONFIGURAÇÃO DO FIREBASE (Copiado da sua imagem) ---
+        // --- CONFIGURAÇÃO DO FIREBASE (CHAVE API CORRIGIDA) ---
         // ------------------------------------------------------------------------------------
 
         // 1. Defina sua configuração estática do Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyDm16PR8c2BABa8X5HBYBMaUsTUa_HPbK", 
+            // A CHAVE API FOI CORRIGIDA AQUI
+            apiKey: "AIzaSyDrml6PR8c2BABa8X5HbYBmAUsTua_hPbk", 
             authDomain: "formularios-7a70f.firebaseapp.com",
             projectId: "formularios-7a70f",
-            // Nota: appspot.com é o domínio correto para Storage, conforme a prática.
-            storageBucket: "formularios-7a70f.appspot.com", 
-            messagingSenderId: "1174368064194", 
+            storageBucket: "formularios-7a70f.firebasestorage.app", 
+            messagingSenderId: "174368064194", 
             appId: "1:174368064194:web:32f0f10502c9f3039cb15b", 
-            // Seu measurementId não é necessário para Auth/Firestore, mas pode ser adicionado se precisar de Analytics
-            // measurementId: "G-FK5FCCZHJ2" 
+            measurementId: "G-FK5FCZ2HJ2" // Adicionado o measurementId do seu objeto
         };
 
         // 2. Definimos um ID fixo para o "app" que será usado na estrutura de pastas do Firestore
@@ -97,7 +99,7 @@
             valorAmigoSecreto: 30.00,
             contribuiçaoIndividual: "Cada um deve levar o que irá consumir: bebidas (cerveja, refri, água) e comida para churrasco (carne, linguiça, frango, pão de alho, arroz, sobremesa, etc.).",
             // !!! IMPORTANTE: SUBSTITUA ESTE VALOR PELO SEU UID REAL APÓS O LOGIN ANÔNIMO !!!
-            // O UID correto aparecerá em (ID: Carregando...) após o app conectar.
+            // O UID correto aparecerá em (ID: seu-uid-aqui) após o app conectar.
             ORGANIZER_ID: "COLOQUE_AQUI_O_SEU_UID_DE_ORGANIZADOR", 
         };
 
@@ -253,6 +255,7 @@
                         <span class="font-medium text-indigo-700">${guest.fullName}</span> 
                         ${guest.numAcompanhantes > 0 ? `<span class="text-sm text-gray-500 ml-2">(+${guest.numAcompanhantes} Acompanhantes)</span>` : ''}
                         
+                        <!-- Mostrar Amigo Secreto -->
                         ${(guest.totalAmigoSecreto || 0) > 0 ? `<div class="text-xs text-purple-600 mt-0.5"><i class="fas fa-gift"></i> ${guest.totalAmigoSecreto} no Amigo Secreto</div>` : ''}
 
                     </div>
@@ -584,6 +587,12 @@
                     return;
                 }
 
+                // Se o usuário principal não tiver resultado, verificamos se ele é um acompanhante
+                // Nota: O sorteio armazena apenas o ID do principal no objeto drawResults.
+                // A maneira de um acompanhante saber quem tirou é se o organizador salvar 
+                // o resultado para o ID gerado do acompanhante (e.g., userId_acomp_1).
+                // Neste código, o resultado é salvo apenas para o userId principal por simplicidade.
+
                 // Caso o usuário esteja logado mas não tenha se confirmado no AS.
                 if (!isAutomatic) {
                     myDrawResultDiv.innerHTML = "Seu resultado ainda não está disponível. Verifique se você está participando do Amigo Secreto.";
@@ -638,64 +647,76 @@
 
         window.onload = setupUI;
     </script>
+    <!-- Ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <div class="card">
+        <!-- Cabeçalho (Editável no JS) -->
         <div class="header-bg p-6 rounded-t-xl text-white text-center">
             <div class="text-3xl md:text-4xl font-extrabold mb-1" id="eventTitle">
-                </div>
+                <!-- Preenchido pelo JS -->
+            </div>
             <p class="text-base font-light" id="eventSubtitle">
-                </p>
+                <!-- Preenchido pelo JS -->
+            </p>
             <p id="userIdDisplay" class="text-xs mt-2 opacity-70">ID: Carregando...</p>
         </div>
 
         <div class="p-6 space-y-6">
             
+            <!-- Detalhes da Festa (Editáveis no JS) -->
             <h2 class="text-xl font-bold text-gray-800 border-b pb-2">Detalhes da Festa</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-gray-700 text-sm">
                 
                 <div class="detail-item text-indigo-600 sm:col-span-2">
                     <i class="fas fa-map-marker-alt"></i>
-                    <span id="detailEndereco"></span>
+                    <span id="detailEndereco"><!-- Endereço --></span>
                 </div>
                 <div class="detail-item text-green-600">
                     <i class="far fa-calendar-alt"></i>
-                    <span id="detailData"></span>
+                    <span id="detailData"><!-- Data/Hora --></span>
                 </div>
                 <div class="detail-item text-red-600">
                     <i class="fas fa-money-bill-wave"></i>
-                    <span id="detailValor"></span>   
+                    <span id="detailValor"><!-- Custo Base p/ Pessoa --></span>   
                 </div>
+                <!-- NOVO: Contribuição Individual (Ícone de Comida/Carne) -->
                 <div class="detail-item text-orange-600 sm:col-span-2">
                     <i class="fas fa-utensils"></i>
-                    <span id="detailContribuicao" class="italic"></span>
+                    <span id="detailContribuicao" class="italic"><!-- Sua Contribuição --></span>
                 </div>
+                <!-- NOVO: Custo (Ícone de Dinheiro) -->
                 <div class="detail-item text-red-600 sm:col-span-2">
                     <i class="fas fa-info-circle"></i>
-                    <span id="detailCardapio"></span>
+                    <span id="detailCardapio"><!-- Custo R$ 50,00 --></span>
                 </div>
                 <div class="detail-item text-blue-600">
                     <i class="fas fa-qrcode"></i>
-                    <span id="detailPix"></span>
+                    <span id="detailPix"><!-- PIX --></span>
                 </div>
                 <div class="detail-item text-purple-600">
                     <i class="fas fa-gift"></i>
-                    <span id="detailAmigo"></span>
+                    <span id="detailAmigo"><!-- Amigo Secreto --></span>
                 </div>
             </div>
 
             <div class="text-center mt-4">
-                 <p class="text-sm font-medium" id="connecting">Conectando ao Firebase...</p>
+                 <!-- Conexão Firebase/Autenticação -->
+                <p class="text-sm font-medium" id="connecting">Conectando ao Firebase...</p>
+                <!-- O authErrorBox será usado para a mensagem de erro da imagem, inicialmente oculto -->
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded relative mt-2 hidden" role="alert" id="authErrorBox">
-                    <p class="text-xs font-semibold">Erro: Configuração do Firebase não encontrada. O app não terá armazenamento persistente.</p>
+                    <!-- Mensagem de erro de autenticação/configuração será preenchida pelo JS -->
                 </div>
             </div>
 
+            <!-- Confirme Sua Presença e Custo -->
             <h3 class="text-lg font-bold text-gray-800 border-b pb-2 mt-6">Confirme Sua Presença e Custo</h3>
 
+            <!-- O generalErrorBox será usado para erros de validação e envio -->
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded relative mt-4 hidden" role="alert" id="generalErrorBox">
-                </div>
+                <!-- Mensagem de erro será preenchida pelo JS -->
+            </div>
 
             <form id="rsvpForm" onsubmit="event.preventDefault(); confirmPresence();" class="space-y-4">
                 <div>
@@ -717,6 +738,7 @@
                     </div>
                 </div>
 
+                <!-- Pergunta Amigo Secreto Acompanhantes (Visibilidade controlada pelo JS) -->
                 <div id="amigoSecretoAcompanhantesDiv" class="hidden p-4 bg-yellow-50 border border-yellow-300 rounded-lg space-y-3">
                      <p class="text-sm font-semibold text-yellow-900">
                          <i class="fas fa-gift mr-2"></i> Quantos dos seus acompanhantes participarão do Amigo Secreto?
@@ -726,8 +748,10 @@
                          <input type="number" id="numAmigoSecretoAcompanhantes" min="0" value="0"
                             class="block w-full px-3 py-2 border border-yellow-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500 transition duration-150 text-sm">
                      </div>
+                     <!-- Container para os nomes dos acompanhantes -->
                      <div id="amigoSecretoNamesContainer">
-                         </div>
+                         <!-- Campos de nome injetados pelo JS -->
+                     </div>
                 </div>
                 
                 <button type="submit" id="confirmButton"
@@ -736,31 +760,37 @@
                 </button>
             </form>
 
+            <!-- Amigo Secreto - Sorteio -->
             <h3 class="text-lg font-bold text-gray-800 border-b pb-2 mt-8">Amigo Secreto - Sorteio</h3>
             <div class="space-y-4 pt-2">
                 
+                <!-- Botão de Sorteio (Apenas Organizador) -->
                 <button onclick="performDraw()" id="drawButton"
                     class="hidden w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150">
                     <i class="fas fa-magic mr-2"></i> Realizar Sorteio (Organizador)
                 </button>
 
+                <!-- Botão e Resultado do Sorteio para o Usuário -->
                 <div class="bg-purple-50 border border-purple-300 p-4 rounded-lg text-center space-y-3">
                     <button onclick="checkMyDraw()" id="checkDrawButton"
                         class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150">
                         <i class="fas fa-gift mr-2"></i> Quem Eu Tirei?
                     </button>
                     <div id="myDrawResult" class="text-sm font-semibold text-purple-900 mt-2 hidden">
-                        </div>
+                        <!-- Resultado do sorteio injetado aqui -->
+                    </div>
                 </div>
             </div>
 
 
+            <!-- Lista de Pessoas Confirmadas -->
             <h3 class="text-lg font-bold text-gray-800 border-b pb-2 mt-8">Lista de Pessoas Confirmadas (<span id="guestCount">0</span> Pessoas)</h3>
             <div id="guestList" class="min-h-[100px] relative">
                 <div class="absolute inset-0 flex justify-center items-center" id="loader">
                     <div class="loader"></div>
                 </div>
-                </div>
+                <!-- Lista de convidados injetada aqui -->
+            </div>
 
         </div>
     </div>
