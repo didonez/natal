@@ -68,25 +68,16 @@
         import { getFirestore, doc, onSnapshot, collection, query, setDoc, serverTimestamp, setLogLevel, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ------------------------------------------------------------------------------------
-        // --- CONFIGURAÇÃO DO FIREBASE (CHAVE API CORRIGIDA) ---
+        // --- CONFIGURAÇÃO DO FIREBASE (USANDO VARIÁVEIS DO AMBIENTE) ---
         // ------------------------------------------------------------------------------------
 
-        // 1. Defina sua configuração estática do Firebase
-        const firebaseConfig = {
-            // A CHAVE API FOI CORRIGIDA AQUI
-            apiKey: "AIzaSyDrml6PR8c2BABa8X5HbYBmAUsTua_hPbk", 
-            authDomain: "formularios-7a70f.firebaseapp.com",
-            projectId: "formularios-7a70f",
-            storageBucket: "formularios-7a70f.firebasestorage.app", 
-            messagingSenderId: "174368064194", 
-            appId: "1:174368064194:web:32f0f10502c9f3039cb15b", 
-            measurementId: "G-FK5FCZ2HJ2" // Adicionado o measurementId do seu objeto
-        };
-
-        // 2. Definimos um ID fixo para o "app" que será usado na estrutura de pastas do Firestore
-        const appId = 'amigo-secreto-festa-2025'; 
-        const initialAuthToken = null; 
-
+        // 1. As variáveis globais são fornecidas pelo ambiente Canvas e são obrigatórias.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'amigo-secreto-festa-2025'; 
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {}; 
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; 
+        
         // --- Variáveis de Configuração da Festa (EDITÁVEIS) ---
         const FESTA_CONFIG = {
             titulo: "Churrasco com Amigo Secreto 🎁",
@@ -98,8 +89,7 @@
             pix: "123.456.789-00 (CPF da Organização)",
             valorAmigoSecreto: 30.00,
             contribuiçaoIndividual: "Cada um deve levar o que irá consumir: bebidas (cerveja, refri, água) e comida para churrasco (carne, linguiça, frango, pão de alho, arroz, sobremesa, etc.).",
-            // !!! IMPORTANTE: SUBSTITUA ESTE VALOR PELO SEU UID REAL APÓS O LOGIN ANÔNIMO !!!
-            // O UID correto aparecerá em (ID: seu-uid-aqui) após o app conectar.
+            // ID DO ORGANIZADOR FORNECIDO PELO USUÁRIO (uUrSomDeD5RF1Q1DyIPSES6pt0c2)
             ORGANIZER_ID: "uUrSomDeD5RF1Q1DyIPSES6pt0c2", 
         };
 
@@ -110,7 +100,6 @@
         const fullNameInput = document.getElementById('fullName');
         const numAcompanhantesInput = document.getElementById('numAcompanhantes');
         const valorTotalSpan = document.getElementById('valorTotal');
-        // IDs corrigidos para o HTML
         const authErrorBox = document.getElementById('authErrorBox');
         const generalErrorBox = document.getElementById('generalErrorBox'); 
         const loaderDiv = document.getElementById('loader');
@@ -151,10 +140,26 @@
             element.classList.add('hidden');
         }
 
+        // Função para resetar o botão de confirmação
+        function resetConfirmButton(isConfirmed = false) {
+             confirmButton.disabled = isConfirmed;
+             confirmButton.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'bg-red-600', 'hover:bg-red-700');
+             
+             if (isConfirmed) {
+                 confirmButton.classList.add('bg-green-600', 'hover:bg-green-700');
+                 confirmButton.innerHTML = `<i class="fas fa-check-circle mr-2"></i> Presença Confirmada!`;
+             } else {
+                 confirmButton.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                 confirmButton.innerHTML = `<i class="fas fa-check-circle mr-2"></i> Confirmar Presença`;
+             }
+        }
+
+
         // Função para inicializar o Firebase
         async function initializeFirebase() {
             try {
-                if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.apiKey) {
+                // Checa se a configuração essencial está presente
+                if (!firebaseConfig || !firebaseConfig.apiKey) {
                     const message = "Erro: Configuração do Firebase ausente. O app não terá armazenamento persistente.";
                     showError(authErrorBox, message);
                     console.error(message);
@@ -175,10 +180,15 @@
                         hideError(authErrorBox);
                         userIdDisplay.textContent = `ID: ${userId}`;
                         connectingDiv.classList.add('hidden');
+                        
+                        // NOVO: Verifica se o usuário já confirmou e preenche o form
+                        await checkMyRsvp(); 
+                        
                         loadGuests();
                     } else {
                         try {
                             if (initialAuthToken) {
+                                // Usa o token de autenticação personalizado fornecido pelo ambiente
                                 await signInWithCustomToken(auth, initialAuthToken);
                             } else {
                                 // Tentativa de login anônimo
@@ -203,11 +213,50 @@
             // Coleção pública para todos os usuários verem as confirmações
             return db ? collection(db, `artifacts/${appId}/public/data/rsvps`) : null;
         }
+        
+        function getMyRsvpDocRef() {
+            return (db && userId) ? doc(getRsvpsCollectionRef(), userId) : null;
+        }
 
         function getAmigoSecretoDrawRef() {
             // Retorna a referência a um documento único na coleção 'amigoSecretoDraw'
             return db ? doc(db, `artifacts/${appId}/public/data/amigoSecretoDraw`, 'theDraw') : null;
         }
+        
+        // NOVO: Função para checar e preencher o formulário se o RSVP já foi feito
+        window.checkMyRsvp = async function() {
+             if (!isAuthReady || !db || !userId) return;
+
+             try {
+                const docRef = getMyRsvpDocRef();
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    // 1. Pré-preencher campos principais
+                    fullNameInput.value = data.fullName || '';
+                    numAcompanhantesInput.value = data.numAcompanhantes || 0;
+                    
+                    // 2. Pré-preencher Amigo Secreto Acompanhantes
+                    numAmigoSecretoAcompanhantesInput.value = data.numAmigoSecretoAcompanhantes || 0;
+                    
+                    // 3. Re-calcular e renderizar campos dinâmicos
+                    calculateTotal();
+                    toggleAmigoSecretoAcompanhantes(data.amigoSecretoCompanionNames);
+                    
+                    // 4. Mostrar botão como confirmado
+                    resetConfirmButton(true);
+
+                } else {
+                    // Usuário não confirmou, reseta o botão para o estado inicial
+                    resetConfirmButton(false);
+                }
+             } catch (e) {
+                 console.error("Erro ao verificar RSVP:", e);
+             }
+        }
+
 
         // Carrega a lista de convidados em tempo real
         function loadGuests() {
@@ -332,7 +381,7 @@
             confirmButton.innerHTML = `<div class="loader mx-auto"></div>`;
             
             try {
-                const docRef = doc(getRsvpsCollectionRef(), userId);
+                const docRef = getMyRsvpDocRef();
                 
                 await setDoc(docRef, {
                     fullName: fullName,
@@ -345,23 +394,25 @@
                     userId: userId,
                 });
 
-                confirmButton.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'bg-red-600');
-                confirmButton.classList.add('bg-green-600', 'hover:bg-green-700');
-                confirmButton.innerHTML = `Presença Confirmada!`;
+                // CORREÇÃO: Feedback de Sucesso
+                resetConfirmButton(true);
+                // Também atualiza o formulário no caso de edições
+                checkMyRsvp();
                 
             } catch (e) {
                 console.error("Erro ao confirmar presença:", e);
                 showError(generalErrorBox, `Erro ao confirmar presença: ${e.message}`);
                 
+                // CORREÇÃO: Feedback de Erro
                 confirmButton.disabled = false;
-                confirmButton.classList.remove('bg-green-600', 'hover:bg-green-700');
+                confirmButton.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'bg-green-600', 'hover:bg-green-700');
                 confirmButton.classList.add('bg-red-600', 'hover:bg-red-700');
                 confirmButton.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i> Tente Novamente`;
             }
         };
         
         // Função para mostrar/ocultar a pergunta do Amigo Secreto para acompanhantes
-        function toggleAmigoSecretoAcompanhantes() {
+        function toggleAmigoSecretoAcompanhantes(companionNames = []) {
             const numAcompanhantes = parseInt(numAcompanhantesInput.value) || 0;
             const numAmigoSecreto = parseInt(numAmigoSecretoAcompanhantesInput.value) || 0;
             const currentAmigoSecretoValue = numAmigoSecreto;
@@ -391,9 +442,13 @@
                     const inputId = `amigoSecretoName_${i}`;
                     const nameField = document.createElement('div');
                     nameField.classList.add('mt-2');
+                    
+                    // Pré-preencher o nome se estiver disponível nos dados salvos
+                    const nameValue = companionNames[i] || ''; 
+                    
                     nameField.innerHTML = `
                         <label for="${inputId}" class="block text-xs font-medium text-yellow-800 mb-1">${label}</label>
-                        <input type="text" id="${inputId}" data-index="${i}" required placeholder="Nome do Acompanhante"
+                        <input type="text" id="${inputId}" data-index="${i}" required placeholder="Nome do Acompanhante" value="${nameValue}"
                                 class="amigo-secreto-name-input block w-full px-3 py-1.5 border border-yellow-300 rounded-lg shadow-sm focus:ring-yellow-500 focus:border-yellow-500 transition duration-150 text-sm">
                     `;
                     amigoSecretoNamesContainer.appendChild(nameField);
@@ -405,7 +460,7 @@
         window.checkAmigoSecretoStatus = async function() {
             
             // 1. Visibilidade do Botão de Sorteio (Apenas Organizador)
-            if (userId === FESTA_CONFIG.ORGANIZER_ID && userId !== "COLOQUE_AQUI_O_SEU_UID_DE_ORGANIZADOR") {
+            if (userId === FESTA_CONFIG.ORGANIZER_ID) {
                 drawButton.classList.remove('hidden');
             } else {
                 drawButton.classList.add('hidden');
@@ -428,7 +483,7 @@
                     checkMyDraw(true); 
                 } else {
                     // Se o organizador estiver logado, mostra o botão de sorteio
-                    if (userId === FESTA_CONFIG.ORGANIZER_ID && userId !== "COLOQUE_AQUI_O_SEU_UID_DE_ORGANIZADOR") {
+                    if (userId === FESTA_CONFIG.ORGANIZER_ID) {
                          drawButton.innerHTML = `<i class="fas fa-magic mr-2"></i> Realizar Sorteio (Organizador)`;
                          drawButton.classList.add('bg-red-600', 'hover:bg-red-700');
                          drawButton.disabled = false;
@@ -587,12 +642,6 @@
                     return;
                 }
 
-                // Se o usuário principal não tiver resultado, verificamos se ele é um acompanhante
-                // Nota: O sorteio armazena apenas o ID do principal no objeto drawResults.
-                // A maneira de um acompanhante saber quem tirou é se o organizador salvar 
-                // o resultado para o ID gerado do acompanhante (e.g., userId_acomp_1).
-                // Neste código, o resultado é salvo apenas para o userId principal por simplicidade.
-
                 // Caso o usuário esteja logado mas não tenha se confirmado no AS.
                 if (!isAutomatic) {
                     myDrawResultDiv.innerHTML = "Seu resultado ainda não está disponível. Verifique se você está participando do Amigo Secreto.";
@@ -640,6 +689,7 @@
             // 3. Calcular valor inicial e visibilidade inicial
             calculateTotal(); 
             toggleAmigoSecretoAcompanhantes(); 
+            resetConfirmButton(false); // Garante que o botão comece no estado normal
 
             // 4. Iniciar Firebase
             initializeFirebase();
@@ -796,4 +846,3 @@
     </div>
 </body>
 </html>
-
