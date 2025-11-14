@@ -60,23 +60,28 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, collection, query, setDoc, serverTimestamp, setLogLevel, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- Leitura Segura das Variáveis Globais ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // ------------------------------------------------------------------------------------
+        // --- SUBSTITUIÇÃO DA CONFIGURAÇÃO DO FIREBASE COM BASE NO SEU UPLOAD (image_a6a0de.png) ---
+        // ------------------------------------------------------------------------------------
+        
+        // 1. Defina sua configuração estática do Firebase (Copiado da sua imagem, usando CDN/SDK)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDm16PR8c2BABa8X5HBYBMaUsTUa_HPbK", // Substitua pelo seu apiKey real se for diferente
+            authDomain: "formularios-7a70f.firebaseapp.com",
+            projectId: "formularios-7a70f",
+            storageBucket: "formularios-7a70f.appspot.com",
+            messagingSenderId: "1174368064194", 
+            appId: "1:174368064194:web:32f0f10502c9f3039cb15b", 
+        };
 
-        let firebaseConfig = {};
-        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-            try {
-                firebaseConfig = JSON.parse(__firebase_config);
-                console.warn("--- DEBUG FIREBASE CONFIG ---");
-                console.log("1. Configuração Bruta (String):", __firebase_config.substring(0, 100) + '...');
-            } catch (e) {
-                console.error("Erro ao fazer parse da configuração do Firebase: A string JSON é inválida.", e);
-            }
-        }
-        console.log("2. Objeto de Configuração (Parsed):", firebaseConfig);
-        console.warn("--- FIM DEBUG FIREBASE CONFIG ---");
-        // -----------------------------------------------------------
+        // 2. Definimos um ID fixo para o "app" que será usado na estrutura de pastas do Firestore
+        // Este é o 'amigo-secreto-festa-2025' que deve ser espelhado nas Regras de Segurança.
+        const appId = 'amigo-secreto-festa-2025'; 
+        const initialAuthToken = null; 
+
+        // ------------------------------------------------------------------------------------
+        // --- FIM DA SUBSTITUIÇÃO ---
+        // ------------------------------------------------------------------------------------
 
         // --- Variáveis de Configuração da Festa (EDITÁVEIS) ---
         const FESTA_CONFIG = {
@@ -90,7 +95,8 @@
             valorAmigoSecreto: 30.00,
             contribuiçaoIndividual: "Cada um deve levar o que irá consumir: bebidas (cerveja, refri, água) e comida para churrasco (carne, linguiça, frango, pão de alho, arroz, sobremesa, etc.).",
             // NOVO: ID do usuário que pode realizar o sorteio (PARA TESTES/ORGANIZADOR)
-            ORGANIZER_ID: "FIXAR_AQUI_O_ID_DO_ORGANIZADOR", // Substitua pelo seu ID de usuário real.
+            // LEMBRE-SE DE SUBSTITUIR 'FIXAR_AQUI_O_ID_DO_ORGANIZADOR' PELO SEU UID REAL.
+            ORGANIZER_ID: "FIXAR_AQUI_O_ID_DO_ORGANIZADOR", 
         };
 
         // Elementos UI
@@ -145,8 +151,9 @@
         // Função para inicializar o Firebase
         async function initializeFirebase() {
             try {
+                // Checagem de configuração (Apenas para garantir, embora a injeção estática deva resolver)
                 if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.apiKey) {
-                    const message = "Erro: Configuração do Firebase não encontrada. O app não terá armazenamento persistente.";
+                    const message = "Erro: Configuração do Firebase não encontrada. Verifique se as chaves 'apiKey' e 'projectId' estão corretas.";
                     showError(authErrorBox, message);
                     console.error(message);
                     connectingDiv.textContent = "Erro de Configuração";
@@ -172,6 +179,7 @@
                             if (initialAuthToken) {
                                 await signInWithCustomToken(auth, initialAuthToken);
                             } else {
+                                // Tentativa de login anônimo
                                 await signInAnonymously(auth);
                             }
                         } catch (e) {
