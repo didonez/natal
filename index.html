@@ -93,11 +93,12 @@
         let isConfigValid = false;
         
         // --- CONFIGURAÇÃO DE FALLBACK HARDCODED (ATUALIZADO COM OS DADOS DO SEU PRINT) ---
+        // A chave API é a mesma que estava no print (image_b08e89.png) para garantir a conexão
         const HARDCODED_FALLBACK_CONFIG = {
              apiKey: "AIzaSyDrml6PR8c2BABa8X5HbYBmAUsTua_hPbk", 
              authDomain: "formularios-7a70f.firebaseapp.com",
              projectId: "formularios-7a70f",
-             storageBucket: "formularios-7a70f.appspot.com", // Ajustado para a propriedade correta
+             storageBucket: "formularios-7a70f.appspot.com", 
              messagingSenderId: "174368064194",
              appId: "1:174368064194:web:32f0f10502c9f3039cb15b",
              measurementId: "G-FK5FCZ2HJ2"
@@ -234,7 +235,9 @@
                         userIdDisplay.textContent = `ID: ${userId}`;
                         connectingDiv.classList.add('hidden');
                         
-                        await checkMyRsvp(); // Tenta carregar o RSVP após a autenticação
+                        // CORREÇÃO AQUI: Garante que o RSVP e os campos do formulário são carregados
+                        // ANTES de carregar a lista de convidados para evitar race condition.
+                        await checkMyRsvp(); 
                         
                         loadGuests(); // Inicia o listener de convidados
                     } else {
@@ -282,6 +285,11 @@
              if (!isAuthReady || !db || !userId) {
                  return;
              }
+             
+             // Mostra um pequeno loader no botão enquanto verifica
+             resetConfirmButton(false);
+             confirmButton.disabled = true;
+             confirmButton.innerHTML = `<div class="loader mx-auto"></div>`; 
 
              try {
                 const docRef = getMyRsvpDocRef();
@@ -295,11 +303,13 @@
                     numAcompanhantesInput.value = data.numAcompanhantes || 0;
                     
                     // 2. Pré-preencher Amigo Secreto Acompanhantes
-                    numAmigoSecretoAcompanhantesInput.value = data.numAmigoSecretoAcompanhantes || 0;
+                    const numAS = data.numAmigoSecretoAcompanhantes || 0;
+                    numAmigoSecretoAcompanhantesInput.value = numAS;
                     
-                    // 3. Re-calcular e renderizar campos dinâmicos
+                    // 3. Re-calcular e renderizar campos dinâmicos (MUITA ATENÇÃO AQUI)
                     calculateTotal();
-                    toggleAmigoSecretoAcompanhantes(data.amigoSecretoCompanionNames);
+                    // O data.amigoSecretoCompanionNames contém os nomes que devem ser usados para preencher os campos.
+                    toggleAmigoSecretoAcompanhantes(data.amigoSecretoCompanionNames || []);
                     
                     // 4. Mostrar botão como confirmado
                     resetConfirmButton(true);
@@ -479,16 +489,17 @@
         // Função para mostrar/ocultar a pergunta do Amigo Secreto para acompanhantes
         function toggleAmigoSecretoAcompanhantes(companionNames = []) {
             const numAcompanhantes = parseInt(numAcompanhantesInput.value) || 0;
-            const numAmigoSecreto = parseInt(numAmigoSecretoAcompanhantesInput.value) || 0;
-            const currentAmigoSecretoValue = numAmigoSecreto;
-
-            // Lógica de visibilidade primária
+            
+            // 1. Lógica de visibilidade primária
             if (numAcompanhantes > 0) {
                 amigoSecretoAcompanhantesDiv.classList.remove('hidden');
                 numAmigoSecretoAcompanhantesInput.max = numAcompanhantes;
                 
+                // Garante que o número de participantes AS não exceda o de acompanhantes
+                let currentAmigoSecretoValue = parseInt(numAmigoSecretoAcompanhantesInput.value) || 0;
                 if (currentAmigoSecretoValue > numAcompanhantes) {
-                    numAmigoSecretoAcompanhantesInput.value = numAcompanhantes;
+                    currentAmigoSecretoValue = numAcompanhantes;
+                    numAmigoSecretoAcompanhantesInput.value = currentAmigoSecretoValue;
                 }
                 
             } else {
@@ -496,7 +507,7 @@
                 numAmigoSecretoAcompanhantesInput.value = 0;
             }
 
-            // Lógica de geração de campos de nome
+            // 2. Lógica de geração de campos de nome
             amigoSecretoNamesContainer.innerHTML = '';
             
             const numAcompanhantesParaAS = parseInt(numAmigoSecretoAcompanhantesInput.value) || 0;
@@ -508,7 +519,7 @@
                     const nameField = document.createElement('div');
                     nameField.classList.add('mt-2');
                     
-                    // Pré-preencher o nome se estiver disponível nos dados salvos
+                    // Pré-preencher o nome se estiver disponível nos dados salvos (CORREÇÃO DE BUG: usa o array companionNames)
                     const nameValue = companionNames[i] || ''; 
                     
                     nameField.innerHTML = `
@@ -647,7 +658,7 @@
 
                 if (!successfulDraw) {
                     showError(generalErrorBox, "Falha ao realizar o sorteio após várias tentativas. Tente novamente.");
-                    checkAmigoSecretoStatus();
+                    checkAmigoSecretoStatus(); // Reseta o estado do botão
                     return;
                 }
                 
