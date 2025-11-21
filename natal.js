@@ -1,4 +1,4 @@
-// --- INICIALIZAÇÃO FIREBASE ---
+// --- INICIALIZAÇÃO FIREBASE (MOVIDA DO index5.html) ---
 const firebaseConfig = {
     apiKey: "AIzaSyAqE58H0UriOexZpsDAODfNFSsi5Co4nac",
     authDomain: "churrasco-com-amigosecreto.firebaseapp.com",
@@ -8,9 +8,11 @@ const firebaseConfig = {
     appId: "1:780934998934:web:fc30e057ef1b31b3438bb7"
 };
 
+// Inicializa o Firebase
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore(); 
 
+// Ativa logs de depuração para ver erros no console do navegador
 firebase.firestore.setLogLevel('debug');
 
 
@@ -29,8 +31,9 @@ const valorDisplay = document.getElementById('valor-display');
 const mensagemStatus = document.getElementById('mensagem-status');
 const nomesAcompanhantesWrapper = document.getElementById('nomes-acompanhantes-wrapper');
 
-// O ID da festa (CONFORME SOLICITADO, SEM O ANO)
-const ID_FESTA = 'CONFRATERNIZACAO_NATAL'; 
+// ⭐️ NOVO ID DA FESTA DE NATAL (SEM ANO) ⭐️
+const ID_FESTA = 'FESTA_NATAL'; 
+// O Firebase criará: festas/FESTA_NATAL/participantes
 const colecaoParticipantes = db.collection('festas').doc(ID_FESTA).collection('participantes');
 
 // --- FUNÇÕES DE LÓGICA DE NEGÓCIO ---
@@ -42,13 +45,14 @@ function calcularValor() {
 function salvarConfirmacao(e) {
     e.preventDefault();
 
+    // Feedback visual
     mensagemStatus.textContent = "Salvando...";
     mensagemStatus.style.backgroundColor = '#fff3e0'; 
     mensagemStatus.style.color = '#ff9800'; 
 
     const nome = nomeInput.value.trim();
     const acompanhantes = parseInt(acompanhantesInput.value) || 0;
-    const participaASPrincipal = participaAmigoSecretoCheckbox.checked;
+    const participaAS = participaAmigoSecretoCheckbox.checked;
 
     if (!nome) {
         mensagemStatus.textContent = "Por favor, preencha seu nome.";
@@ -57,39 +61,22 @@ function salvarConfirmacao(e) {
         return;
     }
 
-    // ⭐️ NOVO: COLETANDO DADOS DOS ACOMPANHANTES ⭐️
-    let nomesAmigoSecreto = [];
-    let acompanhantesQueParticipam = 0;
-
-    // Se o participante principal participa
-    if (participaASPrincipal) {
-        nomesAmigoSecreto.push(nome);
-    }
-    
-    // Coleta dados dos acompanhantes dinâmicos (criados em gerenciarCampos)
-    const inputsAcompanhantes = nomesAcompanhantesWrapper.querySelectorAll('.acompanhante-item');
-    inputsAcompanhantes.forEach(item => {
-        const nomeAcompInput = item.querySelector('input[type="text"]');
-        const participaAcompCheckbox = item.querySelector('input[type="checkbox"]');
-        
-        const nomeAcomp = nomeAcompInput.value.trim();
-        const participaAS = participaAcompCheckbox ? participaAcompCheckbox.checked : false;
-
-        if (nomeAcomp) {
-            if (participaAS) {
-                // Salva o nome do acompanhante APENAS se ele for participar do Amigo Secreto
-                nomesAmigoSecreto.push(nomeAcomp);
+    let nomesAcompanhantesAS = [];
+    if (participaAS && acompanhantes > 0) {
+        const inputsAcompanhantes = nomesAcompanhantesWrapper.querySelectorAll('input[type="text"]');
+        inputsAcompanhantes.forEach(input => {
+            const nomeAcomp = input.value.trim();
+            if (nomeAcomp) {
+                nomesAcompanhantesAS.push(nomeAcomp);
             }
-            // Conta como acompanhante confirmado na festa, independentemente de participar do AS
-            acompanhantesQueParticipam++; 
-        }
-    });
+        });
+    }
 
     const dados = {
         nome: nome,
-        acompanhantes: acompanhantes, // MANTÉM a contagem total de acompanhantes
-        participaAS: participaASPrincipal, // Mantém o status do principal
-        nomesAmigoSecreto: nomesAmigoSecreto, // Lista com TODOS que farão o AS (Principal + Acompanhantes)
+        acompanhantes: acompanhantes,
+        participaAS: participaAS, // USANDO participaAS para salvar (CORRETO)
+        nomesAmigoSecreto: nomesAcompanhantesAS,
         valorPago: 50,
         contribuir: true, 
         timestamp: new firebase.firestore.Timestamp.now()
@@ -102,9 +89,8 @@ function salvarConfirmacao(e) {
             mensagemStatus.style.color = '#388e3c'; 
             confirmacaoForm.reset();
             calcularValor();
-            // Limpa e esconde os campos dinâmicos
-            nomesAcompanhantesWrapper.innerHTML = '<h3>Acompanhantes:</h3>';
             nomesAcompanhantesWrapper.style.display = 'none';
+            nomesAcompanhantesWrapper.innerHTML = '<h3>Acompanhantes para o Amigo Secreto:</h3>';
         })
         .catch(error => {
             console.error("Erro ao salvar no Firestore: ", error);
@@ -129,17 +115,17 @@ function renderizarListas(participantes) {
         const dados = doc.data();
         const nomeParticipante = dados.nome || 'Participante Desconhecido';
         const numAcompanhantes = dados.acompanhantes || 0;
-        const nomesAS = dados.nomesAmigoSecreto || []; 
+        // CORREÇÃO CRÍTICA: Lendo o campo 'participaAS' do seu DB (CORRETO)
+        const participaAS = dados.participaAS || false; 
         
         totalPessoas += (1 + numAcompanhantes); 
-        totalAmigoSecreto += nomesAS.length; // Conta todos na lista do AS
-
-        // 1. Renderiza a Lista de Presença Completa
+        
         const liPresenca = document.createElement('li');
         let textoPresenca = `${nomeParticipante} (P + ${numAcompanhantes} Acompanhante${numAcompanhantes === 1 ? '' : 's'})`;
         
-        if (nomesAS.length > 0) {
-            textoPresenca += ` - 🎁 **${nomesAS.length} no Amigo Secreto**`;
+        if (participaAS) {
+            textoPresenca += ' - 🎁 **Amigo Secreto Sim**';
+            totalAmigoSecreto += 1; 
         } else {
             textoPresenca += ' - Amigo Secreto Não';
         }
@@ -147,14 +133,20 @@ function renderizarListas(participantes) {
         liPresenca.innerHTML = textoPresenca;
         listaPresenca.appendChild(liPresenca);
 
-        // 2. Renderiza na Lista de Amigo Secreto
-        if (listaAmigoSecreto) {
-            nomesAS.forEach(nomeAS => {
-                const liAmigoSecreto = document.createElement('li');
-                let tag = (nomeAS === nomeParticipante) ? '' : ' (Acomp.)';
-                liAmigoSecreto.textContent = nomeAS + tag; 
-                listaAmigoSecreto.appendChild(liAmigoSecreto);
-            });
+        // Renderiza na lista de Amigo Secreto se o elemento existir
+        if (participaAS && listaAmigoSecreto) {
+            const liAmigoSecreto = document.createElement('li');
+            liAmigoSecreto.textContent = nomeParticipante; 
+            listaAmigoSecreto.appendChild(liAmigoSecreto);
+
+            if (dados.nomesAmigoSecreto && dados.nomesAmigoSecreto.length > 0) {
+                dados.nomesAmigoSecreto.forEach(nomeAcompanhante => {
+                    const liAcomp = document.createElement('li');
+                    liAcomp.textContent = nomeAcompanhante + ' (Acomp.)';
+                    listaAmigoSecreto.appendChild(liAcomp);
+                    totalAmigoSecreto += 1;
+                });
+            }
         }
     });
 
@@ -171,6 +163,7 @@ function carregarParticipantes() {
         renderizarListas(snapshot.docs);
     }, error => {
         console.error("Erro ao buscar participantes: ", error);
+        // Sugere verificar as regras, já que o erro de permissão é o mais provável
         listaPresenca.innerHTML = '<li>Erro ao carregar participantes. Verifique as Regras do Firebase.</li>';
         if (listaAmigoSecreto) {
             listaAmigoSecreto.innerHTML = '<li>Erro ao carregar participantes. Verifique as Regras do Firebase.</li>';
@@ -180,60 +173,25 @@ function carregarParticipantes() {
 
 // --- CONTROLES DE FORMULÁRIO ---
 function gerenciarCamposAmigoSecreto() {
-    // Limpa a área
-    nomesAcompanhantesWrapper.innerHTML = '<h3>Acompanhantes:</h3>';
+    nomesAcompanhantesWrapper.innerHTML = '<h3>Acompanhantes para o Amigo Secreto:</h3>';
     nomesAcompanhantesWrapper.style.display = 'none';
 
     const numAcompanhantes = parseInt(acompanhantesInput.value) || 0;
+    const participaAS = participaAmigoSecretoCheckbox.checked;
 
-    if (numAcompanhantes > 0) {
+    if (participaAS && numAcompanhantes > 0) {
         nomesAcompanhantesWrapper.style.display = 'block';
         
         for (let i = 1; i <= numAcompanhantes; i++) {
-            const itemDiv = document.createElement('div');
-            itemDiv.classList.add('acompanhante-item');
-            itemDiv.style.marginBottom = '15px';
-            itemDiv.style.border = '1px solid #ddd';
-            itemDiv.style.padding = '10px';
-            itemDiv.style.borderRadius = '4px';
-
-            // 1. Input para o Nome
-            const labelNome = document.createElement('label');
-            labelNome.textContent = `Nome do Acompanhante ${i}:`;
-            labelNome.style.fontWeight = 'normal';
-            labelNome.style.marginBottom = '5px';
+            const label = document.createElement('label');
+            label.textContent = `Nome do Acompanhante ${i} (p/ Amigo Secreto):`;
             
-            const inputNome = document.createElement('input');
-            inputNome.type = 'text';
-            inputNome.placeholder = `Nome do Acompanhante ${i}`;
-            inputNome.required = true;
-
-            // 2. Checkbox para o Amigo Secreto
-            const divAS = document.createElement('div');
-            divAS.style.display = 'flex';
-            divAS.style.alignItems = 'center';
-            divAS.style.marginTop = '10px';
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = `Nome do Acompanhante ${i}`;
             
-            const checkboxAS = document.createElement('input');
-            checkboxAS.type = 'checkbox';
-            checkboxAS.id = `participa-acompanhante-${i}`;
-            checkboxAS.style.width = 'auto';
-            checkboxAS.style.marginRight = '10px';
-            
-            const labelAS = document.createElement('label');
-            labelAS.setAttribute('for', `participa-acompanhante-${i}`);
-            labelAS.textContent = 'Participa do Amigo Secreto (R$ 30,00)';
-            labelAS.style.marginBottom = '0';
-            labelAS.style.fontWeight = 'bold';
-            
-            divAS.appendChild(checkboxAS);
-            divAS.appendChild(labelAS);
-            
-            itemDiv.appendChild(labelNome);
-            itemDiv.appendChild(inputNome);
-            itemDiv.appendChild(divAS);
-            
-            nomesAcompanhantesWrapper.appendChild(itemDiv);
+            nomesAcompanhantesWrapper.appendChild(label);
+            nomesAcompanhantesWrapper.appendChild(input);
         }
     }
 }
@@ -245,5 +203,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 confirmacaoForm.addEventListener('submit', salvarConfirmacao);
-// APENAS o input de acompanhantes precisa chamar a função para renderizar os campos dinâmicos.
 acompanhantesInput.addEventListener('input', gerenciarCamposAmigoSecreto);
+participaAmigoSecretoCheckbox.addEventListener('change', gerenciarCamposAmigoSecreto);
