@@ -1,0 +1,276 @@
+/* Cores de Natal: Vermelho Principal, Verde Secundário */
+:root {
+    --primary-color: #C62828; /* Vermelho escuro */
+    --secondary-color: #2E7D32; /* Verde escuro */
+    --accent-color: #FFD600; /* Dourado */
+    --text-color: #333;
+    --light-text-color: #f8f8f8;
+    --background-color: #f0f2f5;
+    --card-background: #ffffff;
+    --border-color: #e0e0e0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+.container {
+    background-color: var(--card-background);
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    max-width: 600px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 50px; /* Espaço para o rodapé */
+}
+
+/* Cabeçalho de Natal */
+header.natal-header {
+    background-color: var(--primary-color); /* Fundo vermelho */
+    color: var(--light-text-color);
+    padding: 25px 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden; /* Para os ícones de neve/glitter */
+}
+
+header.natal-header h1 {
+    margin: 0;
+    font-size: 2.2em;
+    font-weight: bold;
+    color: var(--light-text-color);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 1;
+}
+
+header.natal-header p {
+    margin-top: 10px;
+    font-size: 1.1em;
+    color: var(--light-text-color);
+    position: relative;
+    z-index: 1;
+}
+
+/* Efeitos de neve/glitter no cabeçalho */
+header.natal-header::before,
+header.natal-header::after {
+    content: '✨'; /* Ou '❄️' para neve */
+    position: absolute;
+    font-size: 1.5em;
+    animation: glitter 3s infinite ease-in-out alternate;
+    z-index: 0;
+}
+
+header.natal-header::before {
+    top: 10%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+header.natal-header::after {
+    bottom: 15%;
+    right: 15%;
+    animation-delay: 1.5s;
+}
+
+@keyframes glitter {
+    0% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+    50% { transform: scale(1.2) rotate(15deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+}
+
+
+h2 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 1.8em;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--border-color), rgba(0, 0, 0, 0));
+    margin: 30px 0;
+}
+
+.detalhes, .confirmacao, .lista-participantes, .amigo-secreto-list {
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--card-background);
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.info-item .icon {
+    font-size: 1.8em; /* Aumenta o tamanho dos emojis */
+    margin-right: 15px;
+    color: var(--primary-color); /* Cor de destaque para os ícones */
+    width: 30px; /* Garante que os ícones tenham largura consistente */
+    text-align: center;
+}
+
+.info-item p {
+    margin: 0;
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.info-item strong {
+    color: var(--secondary-color); /* Destaque para informações importantes */
+}
+
+form label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+form input[type="text"],
+form input[type="number"] {
+    width: calc(100% - 20px);
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1em;
+}
+
+.valor-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--primary-color); /* Fundo vermelho */
+    color: var(--light-text-color);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.valor-total span {
+    font-size: 1.4em;
+    color: var(--accent-color); /* Dourado */
+}
+
+.amigo-secreto-opt {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.amigo-secreto-opt input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.3);
+    accent-color: var(--secondary-color); /* Checkbox verde */
+}
+
+#nomes-acompanhantes-wrapper {
+    background-color: #f9f9f9;
+    border: 1px dashed var(--secondary-color);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+#nomes-acompanhantes-wrapper h3 {
+    color: var(--secondary-color);
+    margin-top: 0;
+    font-size: 1.1em;
+}
+
+#nomes-acompanhantes-wrapper input {
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+
+#btn-confirmar {
+    background-color: var(--secondary-color); /* Botão verde */
+    color: white;
+    padding: 15px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+}
+
+#btn-confirmar:hover {
+    background-color: #216a24; /* Verde mais escuro no hover */
+}
+
+.status-message {
+    padding: 10px 15px;
+    margin-top: 20px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    color: var(--text-color);
+    background-color: #f0f0f0;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    background-color: #f9f9f9;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-color);
+}
+
+.footer-id {
+    text-align: center;
+    margin-top: 40px;
+    padding: 10px;
+    font-size: 0.9em;
+    color: #777;
+    position: fixed; /* Fixa no rodapé da página */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--background-color);
+    border-top: 1px solid var(--border-color);
+    box-sizing: border-box;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        margin: 10px;
+        padding: 20px;
+    }
+
+    header h1 {
+        font-size: 1.8em;
+    }
+}
