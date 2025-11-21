@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feliz Natal com Amigo Secreto 🎁</title>
+    <link rel="stylesheet" href="natal.css"> </head>
+<body>
+
+    <div class="container">
+        <header class="natal-header">
+            <h1>🎅 FELIZ NATAL - AMIGOS DO WANDA 🎄</h1>
+            <p>Celebre a magia do Natal com a gente!</p>
+        </header>
+
+        <section class="detalhes">
+            <h2>Detalhes da Nossa Confraternização Natalina</h2>
+            
+            <div class="info-item">
+                <span class="icon">📍</span> <p><strong>Local:</strong> Rua das árvores, 71 - Parque Continental 2</p>
+            </div>
+            
+            <div class="info-item">
+                <span class="icon">📅</span> <p><strong>Data/Hora:</strong> 25 de Dezembro (Quarta-feira) a partir das 19h00</p>
+            </div>
+            
+            <div class="info-item">
+                <span class="icon">💲</span> <p><strong>Valor Base p/ Pessoa:</strong> R$ 50,00</p>
+            </div>
+            
+            <div class="info-item">
+                <span class="icon">🎁</span> <p><strong>Amigo Secreto:</strong> Até R$ 30,00 (Traga seu presente com carinho!)</p>
+            </div>
+
+            <div class="info-item">
+                <span class="icon">🍽️</span> <p><strong>Sua Contribuição:</strong> Traga um prato para nossa Ceia Compartilhada (salgado ou doce) e sua bebida favorita para brindar!</p>
+            </div>
+        </section>
+
+        <hr>
+
+        <section class="confirmacao">
+            <h2>Confirme Sua Presença e Custo Natalino</h2>
+            <form id="confirmacao-form">
+                
+                <label for="nome">Seu Nome Completo (Participante Principal):</label>
+                <input type="text" id="nome" name="nome" placeholder="Ex: Noel Silva" required>
+
+                <label for="acompanhantes">N&uacute;mero de Acompanhantes (M&aacute;x 10):</label>
+                <input type="number" id="acompanhantes" name="acompanhantes" min="0" max="10" value="0" required>
+                
+                <div class="valor-total">
+                    <p>Valor Total a Pagar (PIX):</p>
+                    <span id="valor-display">R$ 50,00</span>
+                </div>
+
+                <div class="amigo-secreto-opt">
+                    <input type="checkbox" id="participa-amigo-secreto" name="participa-amigo-secreto">
+                    <label for="participa-amigo-secreto">Quero participar do Amigo Secreto de Natal! 🎅</label>
+                </div>
+                
+                <div id="nomes-acompanhantes-wrapper" style="display:none;">
+                    <h3>Nomes dos Acompanhantes para o Amigo Secreto:</h3>
+                </div>
+
+                <button type="submit" id="btn-confirmar">Confirmar Presença Natalina</button>
+            </form>
+
+            <p id="mensagem-status" class="status-message"></p>
+        </section>
+
+        <hr>
+
+        <section class="lista-participantes">
+            <h2>Lista de Convidados Confirmados para o Natal (<span id="total-confirmados">0</span> Pessoas)</h2>
+            <ul id="lista-presenca">
+            </ul>
+        </section>
+
+        <hr>
+
+        <section class="amigo-secreto-list">
+            <h2>🎁 Participantes do Amigo Secreto de Natal (<span id="total-amigo-secreto">0</span> Nomes)</h2>
+            <ul id="lista-amigo-secreto">
+            </ul>
+        </section>
+        
+        <div class="footer-id">
+             ID da Festa: FESTA_NATAL
+        </div>
+
+    </div> 
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="script.js"></script> </body>
+</html>
