@@ -1,4 +1,6 @@
 // --- INICIALIZAÇÃO FIREBASE ---
+// É CRÍTICO que estas configurações estejam corretas e que os scripts 
+// do firebase-app.js e firebase-firestore.js estejam no seu HTML.
 const firebaseConfig = {
     apiKey: "AIzaSyAqE58H0UriOexZpsDAODfNFSsi5Co4nac",
     authDomain: "churrasco-com-amigosecreto.firebaseapp.com",
@@ -11,6 +13,7 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore(); 
 
+// Ativa logs de depuração para ver erros no console do navegador
 firebase.firestore.setLogLevel('debug');
 
 
@@ -29,15 +32,18 @@ const valorDisplay = document.getElementById('valor-display');
 const mensagemStatus = document.getElementById('mensagem-status');
 const nomesAcompanhantesWrapper = document.getElementById('nomes-acompanhantes-wrapper');
 
-// ⭐️ ID DA FESTA ⭐️
-const ID_FESTA = 'CONFRATERNIZACAO_NATAL'; 
+// ⭐️ ID DA FESTA (Deve corresponder ao seu HTML: uzppMbpJjucjqzJEZQLNZKHSVcI2 ou CONFRATERNIZACAO_NATAL) ⭐️
+// Estou mantendo o ID da festa original (churrasco) que estava no seu DB para evitar confusão,
+// mas se você estiver usando o código HTML do Natal, mude esta linha para: 
+// const ID_FESTA = 'CONFRATERNIZACAO_NATAL';
+const ID_FESTA = 'uzppMbpJjucjqzJEZQLNZKHSVcI2'; 
+
 const colecaoParticipantes = db.collection('festas').doc(ID_FESTA).collection('participantes');
 
 // --- FUNÇÕES DE LÓGICA DE NEGÓCIO ---
 
 function calcularValor() {
-    // Mantém R$ 50,00 como valor do principal, mesmo que a contribuição do AS seja R$ 30,00
-    // A complexidade de somar os R$ 30,00 será adicionada no cálculo do PIX, se necessário.
+    // Mantém o valor fixo conforme o design do seu formulário
     valorDisplay.textContent = 'R$ 50,00'; 
 }
 
@@ -59,7 +65,7 @@ function salvarConfirmacao(e) {
         return;
     }
 
-    // ⭐️ NOVO: COLETANDO DADOS DOS ACOMPANHANTES ⭐️
+    // ⭐️ NOVO: COLETANDO DADOS DOS ACOMPANHANTES PARA O AMIGO SECRETO ⭐️
     let nomesAmigoSecreto = [];
     
     // 1. Adiciona o participante principal, se ele for participar do AS
@@ -69,6 +75,7 @@ function salvarConfirmacao(e) {
     
     // 2. Coleta dados dos acompanhantes dinâmicos
     const inputsAcompanhantes = nomesAcompanhantesWrapper.querySelectorAll('.acompanhante-item');
+    let hasEmptyName = false;
     inputsAcompanhantes.forEach(item => {
         const nomeAcompInput = item.querySelector('input[type="text"]');
         const participaAcompCheckbox = item.querySelector('input[type="checkbox"]');
@@ -76,23 +83,29 @@ function salvarConfirmacao(e) {
         const nomeAcomp = nomeAcompInput.value.trim();
         const participaAS = participaAcompCheckbox ? participaAcompCheckbox.checked : false;
 
-        // Adiciona o acompanhante na lista do Amigo Secreto APENAS se o checkbox estiver marcado
-        if (nomeAcomp && participaAS) {
-            nomesAmigoSecreto.push(nomeAcomp);
+        if (nomeAcomp) {
+            // Adiciona o acompanhante na lista do Amigo Secreto APENAS se o checkbox estiver marcado
+            if (participaAS) {
+                nomesAmigoSecreto.push(nomeAcomp);
+            }
+        } else {
+            hasEmptyName = true;
         }
-        
-        // OPCIONAL: Se você quisesse forçar o nome, independente do AS:
-        // if (!nomeAcomp) {
-        //     mensagemStatus.textContent = "Por favor, preencha o nome de todos os acompanhantes.";
-        //     // ... código de erro ...
-        // }
     });
+    
+    if (hasEmptyName && acompanhantes > 0) {
+        mensagemStatus.textContent = "Por favor, preencha o nome de todos os acompanhantes.";
+        mensagemStatus.style.backgroundColor = '#ffebee';
+        mensagemStatus.style.color = '#d32f2f';
+        return;
+    }
+
 
     const dados = {
         nome: nome,
-        acompanhantes: acompanhantes, // Contagem total de acompanhantes
-        participaAS: participaASPrincipal, // Status do AS do principal
-        nomesAmigoSecreto: nomesAmigoSecreto, // Lista UNIFICADA de todos que participarão do AS (principal + acompanhantes)
+        acompanhantes: acompanhantes,
+        participaAS: participaASPrincipal, 
+        nomesAmigoSecreto: nomesAmigoSecreto, // Lista UNIFICADA de todos que participarão do AS
         valorPago: 50,
         contribuir: true, 
         timestamp: new firebase.firestore.Timestamp.now()
@@ -106,12 +119,12 @@ function salvarConfirmacao(e) {
             confirmacaoForm.reset();
             calcularValor();
             // Limpa e esconde os campos dinâmicos
-            nomesAcompanhantesWrapper.innerHTML = '<h3>Acompanhantes:</h3>';
+            nomesAcompanhantesWrapper.innerHTML = '<h3>Nomes dos Acompanhantes:</h3>';
             nomesAcompanhantesWrapper.style.display = 'none';
         })
         .catch(error => {
             console.error("Erro ao salvar no Firestore: ", error);
-            mensagemStatus.textContent = "Erro ao confirmar presença. Tente novamente.";
+            mensagemStatus.textContent = "Erro ao confirmar presença. Verifique as Regras do Firebase.";
             mensagemStatus.style.backgroundColor = '#ffebee'; 
             mensagemStatus.style.color = '#d32f2f'; 
         });
@@ -155,9 +168,8 @@ function renderizarListas(participantes) {
             // Itera a lista unificada de nomes do AS
             nomesAS.forEach(nomeAS => {
                 const liAmigoSecreto = document.createElement('li');
-                // Se o nome for o mesmo do principal, é o principal, senão é acompanhante
-                let tag = (nomeAS === nomeParticipante) ? '' : ' (Acomp.)'; 
-                liAmigoSecreto.textContent = nomeAS + tag; 
+                // 🛑 CORREÇÃO APLICADA: Removendo o tag "(Acomp.)"
+                liAmigoSecreto.textContent = nomeAS; 
                 listaAmigoSecreto.appendChild(liAmigoSecreto);
             });
         }
@@ -198,7 +210,7 @@ function gerenciarCamposAmigoSecreto() {
             const itemDiv = document.createElement('div');
             itemDiv.classList.add('acompanhante-item');
             
-            // Adicionando um pouco de estilo para separar os acompanhantes
+            // Estilos para visualização
             itemDiv.style.marginBottom = '15px';
             itemDiv.style.border = '1px dashed #ddd';
             itemDiv.style.padding = '10px';
